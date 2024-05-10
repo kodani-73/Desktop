@@ -1,0 +1,110 @@
+var sheet = SpreadsheetApp.getActiveSheet();
+
+function shift_checker() {
+
+  //変数の設定
+  let ActiveCell = sheet.getActiveCell();
+  let tate       = ActiveCell.getRow();
+  let yoko       = ActiveCell.getColumn();
+  let kaishi,syuryo,pcn,pca,which,i,start,finish,noti=0,moji,check=0;
+
+  //開始・終了・PCのどれを入力したかチェック
+  which = sheet.getRange(2,yoko).getValue();
+
+  //入力されたセルが上2行でないか確認
+  if(tate == 1 || tate == 2){
+    return;
+  }
+  //入力されたセルが左2列でないか確認
+  else if(yoko == 1 || yoko == 2){
+    return;
+  }
+
+  //whichから基準を設定
+  if(which == '開始'){
+    noti = 0;
+  }else if(which == '終了'){
+    noti = -1;
+  }else if(which == 'PC'){
+    noti = -3;
+  }
+
+  //基準から現在位置のkaishi,syuryo,pcnを設定
+  kaishi = sheet.getRange(tate,yoko + noti).getValue();
+  syuryo = sheet.getRange(tate,yoko + noti + 1).getValue();
+  pcn = sheet.getRange(tate,yoko + noti + 3).getValue();
+
+  //syuryoがkaishiよりも早い時はセルを赤く塗る
+  if(syuryo < kaishi){
+    sheet.getRange(tate,yoko+noti,1,2).setBackground('red');
+  }
+
+  //スタート位置の設定
+  i = 3;
+
+  //ループ開始
+  while(true){
+
+    //開始、終了、PCのすべてが入力されてないパターンか確認...(1)
+    if(sheet.getRange(tate,i).isBlank() || sheet.getRange(tate,i+1).isBlank() || sheet.getRange(tate,i+3).isBlank()){
+
+      //名前の欄が空白の場合はループ終了
+      if(sheet.getRange(1,i).isBlank()){
+        break;
+      }
+
+    //(1)以外の場合
+    }else{
+
+      //一度セルを白く塗る
+      sheet.getRange(tate,i,1,2).setBackground('white');
+
+      //現在のセルの日付に入力されているPCを確認
+      pca = sheet.getRange(tate,i+3).getValue();
+
+      //入力した日付のPCと現在位置の日付のPCが同じか確認
+      if(pcn == pca){
+
+        //現在位置の日付のstartとfinishを設定
+        start = sheet.getRange(tate,i).getValue();
+        finish = sheet.getRange(tate,i+1).getValue();
+
+        //入力した日付のkaishiが現在位置の日付のstartとfinishの間の時間か確認...(2)
+        if(start <= kaishi && kaishi <= finish){
+
+          //現在位置の日付と入力した日付のセルを赤く塗る
+          sheet.getRange(tate,i,1,2).setBackground('red');
+          sheet.getRange(tate,yoko+noti,1,2).setBackground('red');
+
+        //(2)ではなく、現在位置の日付のstartが入力された日付のkaishiとsyuryoの間の時間か確認...(3)
+        }else if(kaishi <= start && start <= syuryo){
+
+          //現在位置の日付と入力した日付のセルを赤く塗る
+          sheet.getRange(tate,i,1,2).setBackground('red');
+          sheet.getRange(tate,yoko+noti,1,2).setBackground('red');
+
+        //(3)ではなく、現在位置の日付のfinishが入力された日付のkaishiとsyuryoの間の時間か確認...(4)
+        }else if(kaishi <= finish && finish <= syuryo){
+
+          //現在位置の日付と入力した日付のセルを赤く塗る
+          sheet.getRange(tate,i,1,2).setBackground('red');
+          sheet.getRange(tate,yoko+noti,1,2).setBackground('red');
+
+        //入力した日付のsyuryoが現在位置の日付のstartとfinishの間の時間か確認...(2)
+        }else if(start <= syuryo && syuryo <= finish){
+
+          //現在位置の日付と入力した日付のセルを赤く塗る
+          sheet.getRange(tate,i,1,2).setBackground('red');
+          sheet.getRange(tate,yoko+noti,1,2).setBackground('red');
+          
+        }
+      }
+    }
+    
+    //次の日付に移動
+    i = i + 4;
+  }
+
+  //入力された日付のセルを白く塗る
+  sheet.getRange(tate,yoko+noti,1,2).setBackground('white');
+}
